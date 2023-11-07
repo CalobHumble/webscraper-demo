@@ -6,6 +6,7 @@ import { format } from 'url'
 import { BrowserWindow, app, ipcMain, IpcMainEvent } from 'electron'
 import isDev from 'electron-is-dev'
 import prepareNext from 'electron-next'
+import puppeteer from 'puppeteer';
 
 // Prepare the renderer once the app is ready
 app.on('ready', async () => {
@@ -13,7 +14,8 @@ app.on('ready', async () => {
 
   const mainWindow = new BrowserWindow({
     width: 800,
-    height: 600,
+    height: 800,
+    darkTheme: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: false,
@@ -35,8 +37,13 @@ app.on('ready', async () => {
 // Quit the app once all windows are closed
 app.on('window-all-closed', app.quit)
 
-// listen the channel `message` and resend the received message to the renderer process
-ipcMain.on('message', (event: IpcMainEvent, message: any) => {
-  console.log(message)
-  setTimeout(() => event.sender.send('message', 'hi from electron'), 500)
+ipcMain.on('capture', async (event: IpcMainEvent, url: string) => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto(url);
+  const buffer = await page.screenshot({
+    path: 'screenshot.png',
+  });
+  browser.close();
+  event.sender.send('screenshot', buffer.toString('base64'));
 })

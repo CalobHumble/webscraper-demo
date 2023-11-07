@@ -1,31 +1,23 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Layout from '../components/Layout'
+import { Image } from '@nextui-org/react'
+
 
 const IndexPage = () => {
+
+  const [image, setImage] = useState<string>();
+
   useEffect(() => {
-    const handleMessage = (_event, args) => alert(args)
+    const handleScreenshot = (_event, args) => setImage(args);
 
     // add a listener to 'message' channel
-    global.ipcRenderer.addListener('message', handleMessage)
-
-    return () => {
-      global.ipcRenderer.removeListener('message', handleMessage)
-    }
+    global.ipcRenderer.addListener('screenshot', handleScreenshot)
   }, [])
 
-  const onSayHiClick = () => {
-    global.ipcRenderer.send('message', 'hi from next')
-  }
-
   return (
-    <Layout title="Home | Next.js + TypeScript + Electron Example">
-      <h1>Hello Next.js 👋</h1>
-      <button onClick={onSayHiClick}>Say hi to electron</button>
-      <p>
-        <Link href="/about">About</Link>
-      </p>
-    </Layout>
+    <main>
+      {image && <Image src={`data:image/png;base64,${image}`} alt='screen shot' />}
+    </main>
   )
 }
 
